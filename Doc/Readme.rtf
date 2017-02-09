@@ -1,0 +1,312 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang2057{\fonttbl{\f0\froman\fprq2\fcharset0 Times New Roman;}{\f1\fmodern\fprq1\fcharset0 Lucida Console;}{\f2\fnil\fcharset0 Calibri;}}
+{\stylesheet{ Normal;}{\s1 heading 1;}{\s2 heading 2;}{\s3 heading 3;}}
+{\*\generator Riched20 10.0.14393}\viewkind4\uc1 
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\f0\fs28 Summary\par
+
+\pard\widctlpar\sa120\ulnone\b0\fs20 The aim of this assessment was to produce a program to generate and display cubic and bicubic B-splines to represent curves and surfaces respectively. All three parts of the assessment have been completed successfully. The amount of replicated code in the program could be substantially reduced by adding polymorphism to the curve and surface classes.\par
+
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\fs28 Program Features\par
+
+\pard\keepn\widctlpar\s3\li284\sa120\ulnone\fs24 Curves\par
+
+\pard\widctlpar\sa120\b0\fs20 The program can generate a cubic B-spline curve, which is represented by either one, two or three component functions of one control parameter. The curve is displayed alongside individual views of its component functions. The control points of the curve can be displayed, and the current control point can be highlighted. Control points can be edited using the mouse, and inserted or deleted as required. The control points defining a curve can be preset or cleared, or read from and written to a data file. Animation allows the path of a curve to be traced out according to its control parameter. A curve, which is defined by three component functions, can be rotated or spun in three dimensions.\par
+
+\pard\keepn\widctlpar\s3\li284\sa120\b\fs24 Surfaces\par
+
+\pard\widctlpar\sa120\b0\fs20 The program can generate a bicubic B-spline surface, which is represented by either one or three component functions of two control parameters. The control points of the surface can be displayed, and the current control point can be highlighted. Control points can be edited using the mouse, and rows and columns of control points can be inserted and deleted as required. The control points defining a surface can be preset or cleared, or read from and written to a data file. The surface can be displayed in either a solid or wireframe mode. A surface, which is defined by three components, can be displayed together with its convex hull, and with a set of axes attached to the current control point. The surface is rendered with ambient, diffuse and specular lighting, as determined by the computed normals to the surface. The surface can be coloured according to its patches, or texture mapped. To improve the update rate, the matrices defining a patch, and the tiles produced by the subdivision of a patch are recomputed only when a relevant control point is edited. Any surface can be rotated or spun in three dimensions. A surface, which is defined by three components, can be output to a data file, which is suitable as the input to a ray-tracer. This data file includes the camera, lights, bounding boxes and meshes of vertices, normals and faces. The resolution of the subdivision of a patch can be adjusted to suit the required rendering speed and quality.\par
+
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\fs28 Method Tests\par
+
+\pard\widctlpar\sa120\ulnone\b0\fs20 The method for creating B-splines is tested by evaluating a cubic function at several points, and determining the B-spline function that corresponds to these control points. This B-spline function is evaluated at both end points of each of its sections, and these values are compared with weighted sums of the three nearest control points. This gives a maximum absolute error of 1.66533e-016, and the results are shown in appendix 2. All the other methods in the program were tested purely through visual inspection of the generated images.\par
+
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\fs28 Method Descriptions\par
+
+\pard\keepn\widctlpar\s3\li284\sa120\ulnone\fs24 Curves y = f(x)\par
+
+\pard\widctlpar\sa120\b0\fs20 The \b Curve\b0  class includes the \b vertex()\b0  method, which is used to return the value of a cubic B-spline curve at a point \b x\b0 . The required section of the spline \b i\b0 , and the control parameter for this section \b s\b0 , are determined using the method \b t()\b0 . The control parameter \b s\b0 , and the basis matrix \b a[][]\b0 , are used to determine the blending functions \b b\b0 . These blending functions \b b\b0  are applied to the array of control points, which are accessed through the method \b f()\b0 . The products are summed into the result \b point\b0 , which is divided by 6.0 and returned.\par
+
+\pard\widctlpar\f1\fs16 //------------------------------------------------------------------------------\par
+double Curve::vertex(double x) const \{\par
+    double point = 0.0;\par
+    if (n() == 1) \{\par
+        point = f(0);\par
+    \}\par
+    else \{\par
+        int i = 0;\par
+        while ((t(i + 1) <= x) && (i + 1 < n() - 1)) \{\par
+            i++;\par
+        \}\par
+        double dt = t(i + 1) - t(i);\par
+        double s = (x - t(i)) / dt;\par
+        double a[4][4] = \{\par
+            \{ -1.0,  3.0, -3.0, 1.0 \},\par
+            \{  3.0, -6.0,  3.0, 0.0 \},\par
+            \{ -3.0,  0.0,  3.0, 0.0 \},\par
+            \{  1.0,  4.0,  1.0, 0.0 \}\};\par
+        for (int j = 0; j < 4; j++) \{\par
+            double b = a[0][j];\par
+            for (int k = 1; k < 4; k++) \{\par
+                b = b * s + a[k][j];\par
+            \}\par
+            point += b * f(i + j - 1);\par
+        \}\par
+        point /= 6.0;\par
+    \}\par
+    return point;\par
+\}\par
+\par
+//------------------------------------------------------------------------------\par
+\par
+
+\pard\keepn\widctlpar\s3\li284\sa120\b\fs24 Surfaces z = f(x, y)\par
+
+\pard\widctlpar\sa120\b0\fs20 The \b Patch1D\b0  class includes the \b matrix()\b0  and \b vertices()\b0  methods, which are used to determine the values of a bicubic B-spline surface at a set of points \b u, v\b0 . The \b matrix()\b0  method computes the patch\f0\rquote\f1 s \b BZB\super T\nosupersub\b0  matrix by using two matrix multiplications, rather than the method suggested in the notes. This reduces the number of multiplications required per patch from 512 to 128. The \b vertices()\b0  method computes the values of the vertices of the tiles created by the subdivision of the patch.\par
+
+\pard\widctlpar\fs16 //------------------------------------------------------------------------------\par
+void Patch1D::matrix(double **z, int m, int n) \{\par
+    int i;\par
+    int j;\par
+    int k;\par
+    double Z[ORDER][ORDER];\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            int zv = v() + j - 1;\par
+            zv = (zv < 0) ? 0 : ((zv > n - 1) ? n - 1 : zv);\par
+            int zu = u() + i - 1;\par
+            zu = (zu < 0) ? 0 : ((zu > m - 1) ? m - 1 : zu);\par
+            Z[i][j] = z[zv][zu];\par
+        \}\par
+    \}\par
+    double B[ORDER][ORDER] = \{\par
+        \{ -1.0 / 6.0,  3.0 / 6.0, -3.0 / 6.0, 1.0 / 6.0 \},\par
+        \{  3.0 / 6.0, -6.0 / 6.0,  3.0 / 6.0, 0.0 / 6.0 \},\par
+        \{ -3.0 / 6.0,  0.0 / 6.0,  3.0 / 6.0, 0.0 / 6.0 \},\par
+        \{  1.0 / 6.0,  4.0 / 6.0,  1.0 / 6.0, 0.0 / 6.0 \}\};\par
+    double BZ[ORDER][ORDER];\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            BZ[i][j] = 0.0;\par
+            for (k = 0; k < ORDER; k++) \{\par
+                BZ[i][j] += B[i][k] * Z[k][j];\par
+            \}\par
+        \}\par
+    \}\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            _matrix[i][j] = 0.0;\par
+            for (k = 0; k < ORDER; k++) \{\par
+                _matrix[i][j] += BZ[i][k] * B[j][k];\par
+            \}\par
+        \}\par
+    \}\par
+\}\par
+\par
+//------------------------------------------------------------------------------\par
+void Patch1D::vertices() \{\par
+    for (int v = 0; v < TILES + 1; v++) \{\par
+        double y = (double)v / (double)TILES;\par
+        for (int u = 0; u < TILES + 1; u++) \{\par
+            double x = (double)u / (double)TILES;\par
+            double T[ORDER];\par
+            for (int j = 0; j < ORDER; j++) \{\par
+                T[j] = _matrix[0][j];\par
+                for (int k = 1; k < ORDER; k++) \{\par
+                    T[j] = x * T[j] + _matrix[k][j];\par
+                \}\par
+            \}\par
+            _points[v][u] = T[0];\par
+            for (int k = 1; k < ORDER; k++) \{\par
+                _points[v][u] = y * _points[v][u] + T[k];\par
+            \}\par
+        \}\par
+    \}\par
+\}\par
+\par
+//------------------------------------------------------------------------------\par
+\par
+
+\pard\keepn\widctlpar\s3\li284\sa120\b\fs24 Surfaces x = x(u, v), y = y(u, v), z = z(u, v)\par
+
+\pard\widctlpar\sa120\b0\fs20 The \b Patch3D\b0  class includes the \b matrices()\b0  and \b vertices()\b0  methods, which are used to determine the values of a bicubic B-spline surface at a set of points \b u, v\b0 . The \b matrices()\b0  method computes the patch\f0\rquote\f1 s \b BZB\super T\nosupersub\b0  matrices by using two matrix multiplications, rather than the method suggested in the notes. This reduces the number of multiplications required per patch from 1536 to 384. The \b vertices()\b0  method computes the \b x, y, z\b0  values of the vertices of the tiles created by the subdivision of the patch.\par
+
+\pard\widctlpar\fs16 //------------------------------------------------------------------------------\par
+void Patch3D::matrices(Vectors **point, int m, int n) \{\par
+    int i;\par
+    int j;\par
+    int k;\par
+    Vectors Z[ORDER][ORDER];\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            int v = _v + j - 1;\par
+            v = (v < 0) ? 0 : ((v > n - 1) ? n - 1 : v);\par
+            int u = _u + i - 1;\par
+            u = (u < 0) ? 0 : ((u > m - 1) ? m - 1 : u);\par
+            Z[i][j] = point[v][u];\par
+        \}\par
+    \}\par
+    double B[ORDER][ORDER] = \{\par
+        \{ -1.0 / 6.0,  3.0 / 6.0, -3.0 / 6.0, 1.0 / 6.0 \},\par
+        \{  3.0 / 6.0, -6.0 / 6.0,  3.0 / 6.0, 0.0 / 6.0 \},\par
+        \{ -3.0 / 6.0,  0.0 / 6.0,  3.0 / 6.0, 0.0 / 6.0 \},\par
+        \{  1.0 / 6.0,  4.0 / 6.0,  1.0 / 6.0, 0.0 / 6.0 \}\};\par
+    Vectors BZ[ORDER][ORDER];\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            BZ[i][j] = 0.0;\par
+            for (k = 0; k < ORDER; k++) \{\par
+                BZ[i][j] += B[i][k] * Z[k][j];\par
+            \}\par
+        \}\par
+    \}\par
+    for (i = 0; i < ORDER; i++) \{\par
+        for (j = 0; j < ORDER; j++) \{\par
+            _matrix[i][j] = Vectors();\par
+            for (k = 0; k < ORDER; k++) \{\par
+                _matrix[i][j] += BZ[i][k] * B[j][k];\par
+            \}\par
+        \}\par
+    \}\par
+\}\par
+\par
+//------------------------------------------------------------------------------\par
+void Patch3D::vertices() \{\par
+    for (int v = 0; v < (_tiles + 1); v++) \{\par
+        double y = (double)v / (double)_tiles;\par
+        for (int u = 0; u < (_tiles + 1); u++) \{\par
+            double x = (double)u / (double)_tiles;\par
+            Vectors T[ORDER];\par
+            for (int j = 0; j < ORDER; j++) \{\par
+                T[j] = _matrix[0][j];\par
+                for (int k = 1; k < ORDER; k++) \{\par
+                    T[j] = x * T[j] + _matrix[k][j];\par
+                \}\par
+            \}\par
+            _vertex[v][u] = T[0];\par
+            for (int k = 1; k < ORDER; k++) \{\par
+                _vertex[v][u] = y * _vertex[v][u] + T[k];\par
+            \}\par
+        \}\par
+    \}\par
+\}\par
+\par
+//------------------------------------------------------------------------------\par
+\par
+
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\fs28\page Appendix 1: User Guide\par
+
+\pard\widctlpar\ulnone\b0\fs20 The program is run from the command line as \f0\ldblquote\f1 BicubicBSpline.exe\f0\rdblquote\f1 . The following menu details the use of the mouse and\par
+keyboard.\par
+
+\pard\widctlpar\sa120\par
+\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs\clbrdrt\brdrw10\brdrs \cellx2880\clbrdrt\brdrw10\brdrs\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Escape\cell Exit Program\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F1\cell 1D Curve\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F2\cell 2D Curve\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F3\cell 3D Curve\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F4\cell 1D Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F5\cell 3D Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F6\cell Preset Curve or Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F7\cell Read Curve or Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F8\cell Clear Curve or Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F9\cell Spin (3D Curve, 1D Surface, 3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F10\cell Change Spin Axis (3D Curve, 1D Surface, 3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 F11\cell Stop Spin (3D Curve, 1D Surface, 3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 1\cell Markers\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 2\cell Hull (3D Surface)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 3\cell Axes (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 4\cell Wireframe (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 5\cell Solid (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 6\cell Texture (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 7\cell Animate (1D Curve, 2D Curve, 3D Curve only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 8\cell Write Curve or Surface\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 9\cell Ray-Trace (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Enter\cell Rotate (3D Curve, 1D Surface, 3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Insert\cell Insert\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Delete\cell Delete\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Left or Down\cell Previous\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Right or Up\cell Next\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Home or Page Down\cell First\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 End or Page Up\cell Last\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 < or >\cell Tiles (3D Surface only)\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Left Mouse Button\cell X and Y Coordinates\cell\row\trowd\trgaph108\trleft-108\trbrdrl\brdrs\brdrw10 \trbrdrt\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trpaddl108\trpaddr108\trpaddfl3\trpaddfr3
+\clbrdrl\brdrw10\brdrs\clbrdrb\brdrw10\brdrs \cellx2880\clbrdrr\brdrw10\brdrs\clbrdrb\brdrw10\brdrs \cellx9178 
+\pard\intbl\widctlpar\sa120 Right Mouse Button\cell Z Coordinate\cell\row 
+\pard\widctlpar\fs16\par
+
+\pard\keepn\widctlpar\s2\sb120\sa240\ul\b\fs28\page Appendix 2: Method Tests\par
+
+\pard\widctlpar\ulnone\b0\fs16 The cubic function was evaluated for 11 values of x\par
+\par
+    y = (((((a * x) + b) * x) + c) * x) + d\par
+\par
+    a = 0.5\par
+    b = -0.25\par
+    c = 0.5\par
+    d = 0.25\par
+\par
+The corresponding B-spline function was evaluated at the end points of each of its sections\par
+These values were compared with the relevant weighted sums of the cubic function\par
+\par
+    y = (y0 + 4.0 * y1 + y2) / 6.0\par
+    y = (y1 + 4.0 * y2 + y3) / 6.0\par
+\par
+The errors between the weighted sums and the B-spline function were evaluated\par
+\par
+    x = -1       y = -1         weighted sum = -0.927667  B-spline = -0.927667  error = 0\par
+    x = -0.8     y = -0.566     weighted sum = -0.585333  B-spline = -0.585333  error = 0\par
+    x = -0.8     y = -0.566     weighted sum = -0.585333  B-spline = -0.585333  error = 0\par
+    x = -0.6     y = -0.248     weighted sum = -0.263333  B-spline = -0.263333  error = 0\par
+    x = -0.6     y = -0.248     weighted sum = -0.263333  B-spline = -0.263333  error = 0\par
+    x = -0.4     y = -0.022     weighted sum = -0.0333333 B-spline = -0.0333333 error = -7.63278e-017\par
+    x = -0.4     y = -0.022     weighted sum = -0.0333333 B-spline = -0.0333333 error = -7.63278e-017\par
+    x = -0.2     y = 0.136      weighted sum = 0.128667   B-spline = 0.128667   error = -2.77556e-017\par
+    x = -0.2     y = 0.136      weighted sum = 0.128667   B-spline = 0.128667   error = -2.77556e-017\par
+
+\pard\widctlpar\ri-1016\tx8520\tx9230\tx9372     x = 0        y = 0.25       weighted sum = 0.246667   B-spline = 0.246667   error = -5.55112e-017\par
+
+\pard\widctlpar     x = 0        y = 0.25       weighted sum = 0.246667   B-spline = 0.246667   error = -5.55112e-017\par
+    x = 0.2      y = 0.344      weighted sum = 0.344667   B-spline = 0.344667   error = -1.66533e-016\par
+    x = 0.2      y = 0.344      weighted sum = 0.344667   B-spline = 0.344667   error = -1.66533e-016\par
+    x = 0.4      y = 0.442      weighted sum = 0.446667   B-spline = 0.446667   error = -5.55112e-017\par
+    x = 0.4      y = 0.442      weighted sum = 0.446667   B-spline = 0.446667   error = -5.55112e-017\par
+    x = 0.6      y = 0.568      weighted sum = 0.576667   B-spline = 0.576667   error = 0\par
+    x = 0.6      y = 0.568      weighted sum = 0.576667   B-spline = 0.576667   error = 0\par
+    x = 0.8      y = 0.746      weighted sum = 0.758667   B-spline = 0.758667   error = 0\par
+    x = 0.8      y = 0.746      weighted sum = 0.758667   B-spline = 0.758667   error = 0\par
+    x = 1        y = 1          weighted sum = 0.957667   B-spline = 0.957667   error = 0\par
+\par
+The maximum absolute error was 1.66533e-016\par
+
+\pard\ri-1158\sa200\sl276\slmult1\tx8662\tx9514\fs20\page\f2\fs22\lang9\par
+}
+ 

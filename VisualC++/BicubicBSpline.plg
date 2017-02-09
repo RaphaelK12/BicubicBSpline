@@ -1,0 +1,104 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: BicubicBSpline - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP2.tmp" with contents
+[
+/nologo /ML /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FR"Release/" /Fp"Release/BicubicBSpline.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Bitmap.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Circle.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Control.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Curve.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Curve1D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Curve2D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Curve3D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Display.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Main.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Patch1D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Patch3D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Sphere.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Surface1D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Surface3D.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Test.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Texture.cpp"
+"C:\Documents and Settings\Administrator\Desktop\pauls work\AdvancedGraphics\AdvancedGraphics\BicubicBSpline\Source\Vectors.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP2.tmp" 
+<h3>Output Window</h3>
+Compiling...
+Bitmap.cpp
+Circle.cpp
+Control.cpp
+Curve.cpp
+Curve1D.cpp
+Curve2D.cpp
+Curve3D.cpp
+Display.cpp
+Main.cpp
+Patch1D.cpp
+Patch3D.cpp
+Sphere.cpp
+Surface1D.cpp
+Surface3D.cpp
+Test.cpp
+Texture.cpp
+Vectors.cpp
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"Release/BicubicBSpline.pdb" /machine:I386 /out:"Release/BicubicBSpline.exe" 
+".\Release\Bitmap.obj"
+".\Release\Circle.obj"
+".\Release\Control.obj"
+".\Release\Curve.obj"
+".\Release\Curve1D.obj"
+".\Release\Curve2D.obj"
+".\Release\Curve3D.obj"
+".\Release\Display.obj"
+".\Release\Main.obj"
+".\Release\Patch1D.obj"
+".\Release\Patch3D.obj"
+".\Release\Sphere.obj"
+".\Release\Surface1D.obj"
+".\Release\Surface3D.obj"
+".\Release\Test.obj"
+".\Release\Texture.obj"
+".\Release\Vectors.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp"
+<h3>Output Window</h3>
+Linking...
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5.tmp" with contents
+[
+/nologo /o"Release/BicubicBSpline.bsc" 
+".\Release\Bitmap.sbr"
+".\Release\Circle.sbr"
+".\Release\Control.sbr"
+".\Release\Curve.sbr"
+".\Release\Curve1D.sbr"
+".\Release\Curve2D.sbr"
+".\Release\Curve3D.sbr"
+".\Release\Display.sbr"
+".\Release\Main.sbr"
+".\Release\Patch1D.sbr"
+".\Release\Patch3D.sbr"
+".\Release\Sphere.sbr"
+".\Release\Surface1D.sbr"
+".\Release\Surface3D.sbr"
+".\Release\Test.sbr"
+".\Release\Texture.sbr"
+".\Release\Vectors.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5.tmp"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+BicubicBSpline.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
